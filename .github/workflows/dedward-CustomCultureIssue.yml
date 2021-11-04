@@ -8,7 +8,7 @@ env:
   AZURE_WEBAPP_PACKAGE_PATH: WebApplication116/publish
   AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.dedward_CustomCultureIssue_ba75 }}
   CONFIGURATION: Release
-  DOTNET_CORE_VERSION: 6.0.x
+  DOTNET_CORE_VERSION: 6.0.100-rc.2.21505.57
   WORKING_DIRECTORY: WebApplication116
 jobs:
   build-and-deploy:
