@@ -1,0 +1,78 @@
+﻿@page
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Microsoft.Extensions.Options
+@using System.Globalization
+@model IndexModel
+@inject IOptionsSnapshot<RequestLocalizationOptions> LocOptions
+@inject IViewLocalizer Loc
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<div>
+    <h1 class="display-4">@Loc["Welcome"]</h1>
+    <p>The heading above should be localized based on the culture of the current request.</p>
+    <p>You can set the culture via the querystring using the links in the supported cultures list below (click <a asp-page="/Index">Home</a> to return to defaults).</p>
+    
+    <h2>Supported Cultures</h2>
+    <dl>
+        @foreach (var culture in LocOptions.Value.SupportedUICultures!)
+        {
+            <dt>@culture.Name</dt>
+            <dd><a href="?culture=@culture.Name">@culture.DisplayName</a>
+                @if (culture.CultureTypes.HasFlag(CultureTypes.UserCustomCulture))
+                {
+                    <span class="badge bg-warning text-dark">Custom Culture</span>
+                }
+                @if (culture.Equals(LocOptions.Value.DefaultRequestCulture.UICulture))
+                {
+                    <span class="badge bg-primary">Default Culture</span>
+                }
+                @if (culture.Equals(CultureInfo.CurrentUICulture))
+                {
+                    <span class="badge bg-success">Current Culture</span>
+                }
+            </dd>
+        }
+    </dl>
+
+    <h2>Relevant Issue</h2>
+    <ul>
+        <li><a href="https://github.com/dotnet/msbuild/issues/1454">dotnet/msbuild#1454</a></li>
+    </ul>
+
+    <h2>Project .resx Files</h2>
+    <ul>
+        <li><strong>With Culture</strong>
+            <ul>
+                @foreach (var cultureName in Model.ResxFilesWithCulture)
+                {
+                    <li>@cultureName</li>
+                }
+            </ul>
+        </li>
+        <li><strong>With No Culture</strong>
+            <ul>
+                @foreach (var cultureName in Model.ResxFilesWithNoCulture)
+                {
+                    <li>@cultureName</li>
+                }
+            </ul>
+        </li>
+    </ul>
+
+    <h2>Application Satellite Assembly Directories</h2>
+    <ul>
+        @foreach (var satDir in Model.SatelliteAssembliesDirs)
+        {
+            <li>@satDir</li>
+        }
+    </ul>
+
+    <h2>Environment Details</h2>
+    <ul>
+        <li>@System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription</li>
+        <li>@System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier</li>
+        <li>@System.Runtime.InteropServices.RuntimeInformation.OSDescription</li>
+    </ul>
+</div>
