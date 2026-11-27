@@ -1,0 +1,42 @@
+name: Temporary MSBuild benchmark
+on:
+  push:
+    branches:
+    - damianedwards-solid-doodle
+permissions:
+  contents: read
+jobs:
+  benchmark:
+    name: ${{ matrix.sample.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        sample:
+        - { name: baseline-6, sdk: '6.0.100', flag: '' }
+        - { name: off-1, sdk: '11.0.100', flag: '' }
+        - { name: on-1, sdk: '11.0.100', flag: '-mt' }
+        - { name: off-2, sdk: '11.0.100', flag: '' }
+        - { name: on-2, sdk: '11.0.100', flag: '-mt' }
+        - { name: off-3, sdk: '11.0.100', flag: '' }
+        - { name: on-3, sdk: '11.0.100', flag: '-mt' }
+    steps:
+    - uses: actions/checkout@0717577d45739eb3c851188b29f50ed6c0b2194e
+    - uses: actions/setup-dotnet@871f041373faaad213a635d9afb62905ec029bbb
+      with:
+        dotnet-version: ${{ matrix.sample.sdk }}
+    - name: SDK and runner
+      run: dotnet --info
+    - name: Restore
+      run: dotnet restore "WebApplication116" -r linux-x64
+    - name: Build
+      run: time -p dotnet build "WebApplication116" -r linux-x64 --configuration Release --no-restore ${{ matrix.sample.flag }}
+    - name: Test
+      run: dotnet test "WebApplication116" --no-build
+    - name: Publish
+      run: dotnet publish "WebApplication116" -r linux-x64 --configuration Release --no-build --output "WebApplication116/publish"
+    - name: Check outputs
+      run: |
+        test -f WebApplication116/publish/CustomCultureWebApp.dll
+        find WebApplication116/publish -type f -printf '%P\n' | LC_ALL=C sort
