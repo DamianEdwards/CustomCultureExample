@@ -17,10 +17,6 @@ jobs:
         - { name: baseline-6, sdk: '6.0.100', flag: '' }
         - { name: off-1, sdk: '11.0.100', flag: '' }
         - { name: on-1, sdk: '11.0.100', flag: '-mt' }
-        - { name: off-2, sdk: '11.0.100', flag: '' }
-        - { name: on-2, sdk: '11.0.100', flag: '-mt' }
-        - { name: off-3, sdk: '11.0.100', flag: '' }
-        - { name: on-3, sdk: '11.0.100', flag: '-mt' }
     steps:
     - uses: actions/checkout@0717577d45739eb3c851188b29f50ed6c0b2194e
     - uses: actions/setup-dotnet@871f041373faaad213a635d9afb62905ec029bbb
@@ -40,3 +36,16 @@ jobs:
       run: |
         test -f WebApplication116/publish/CustomCultureWebApp.dll
         find WebApplication116/publish -type f -printf '%P\n' | LC_ALL=C sort
+    - name: Check culture behavior
+      run: |
+        cd WebApplication116/publish
+        ASPNETCORE_URLS=http://127.0.0.1:51439 ./CustomCultureWebApp > "$RUNNER_TEMP/app.log" 2>&1 &
+        app_pid=$!
+        trap 'kill "$app_pid" 2>/dev/null || true' EXIT
+        for culture in en-US en-AU en-MX; do
+          curl --retry 20 --retry-connrefused --retry-delay 1 -fsS "http://127.0.0.1:51439/?culture=$culture" -o "$RUNNER_TEMP/$culture.html"
+          echo "Culture $culture"
+          grep '<h1 class="display-4">' "$RUNNER_TEMP/$culture.html"
+          grep -A16 'Project .resx Files' "$RUNNER_TEMP/$culture.html"
+          grep '\.NET 6\.' "$RUNNER_TEMP/$culture.html"
+        done
